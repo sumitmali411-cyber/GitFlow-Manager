@@ -1,0 +1,34 @@
+# Requires an Ingress controller (e.g. nginx-ingress).
+# Install nginx ingress: https://kubernetes.github.io/ingress-nginx/deploy/
+#
+# After applying, update APP_URL in configmap.yaml to match the host below,
+# and update the GitHub OAuth App callback URL to:
+#   https://<your-host>/auth/callback
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: gitflow-manager
+  namespace: gitflow-manager
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    # Uncomment to enable TLS via cert-manager:
+    # cert-manager.io/cluster-issuer: "letsencrypt-prod"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: gitflow.example.com   # <-- change this to your domain
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: gitflow-manager
+                port:
+                  number: 80
+  # Uncomment to enable TLS:
+  # tls:
+  #   - hosts:
+  #       - gitflow.example.com
+  #     secretName: gitflow-manager-tls

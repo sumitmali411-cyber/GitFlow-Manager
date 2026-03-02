@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  gitflow-manager:
+    build: .
+    container_name: gitflow-manager
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+
+      # --- GitHub OAuth ---
+      # Register your OAuth App at: https://github.com/settings/developers
+      #   Homepage URL:              http://localhost:3000
+      #   Authorization callback URL: http://localhost:3000/auth/callback
+      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID}
+      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET}
+
+      # Must match the Homepage URL of your GitHub OAuth App
+      APP_URL: ${APP_URL:-http://localhost:3000}
+
+      # Random secret for session signing — change this in production
+      SESSION_SECRET: ${SESSION_SECRET:-change-me-in-production}
+
+      # --- Email / SMTP (optional) ---
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_SECURE: ${SMTP_SECURE:-false}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+
+      # --- Google Gemini AI (optional) ---
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/init"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s

@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: gitflow-manager
+  namespace: gitflow-manager
+  labels:
+    app: gitflow-manager
+spec:
+  selector:
+    app: gitflow-manager
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3000
+  type: ClusterIP

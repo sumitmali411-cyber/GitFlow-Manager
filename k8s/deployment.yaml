@@ -1,0 +1,83 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gitflow-manager
+  namespace: gitflow-manager
+  labels:
+    app: gitflow-manager
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gitflow-manager
+  template:
+    metadata:
+      labels:
+        app: gitflow-manager
+    spec:
+      containers:
+        - name: gitflow-manager
+          # Replace with your actual image name after building and pushing:
+          #   docker build -t your-registry/gitflow-manager:latest .
+          #   docker push your-registry/gitflow-manager:latest
+          image: gitflow-manager:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3000
+          envFrom:
+            - configMapRef:
+                name: gitflow-manager-config
+          env:
+            - name: GITHUB_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: gitflow-manager-secrets
+                  key: GITHUB_CLIENT_ID
+            - name: GITHUB_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: gitflow-manager-secrets
+                  key: GITHUB_CLIENT_SECRET
+            - name: SESSION_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: gitflow-manager-secrets
+                  key: SESSION_SECRET
+            - name: SMTP_USER
+              valueFrom:
+                secretKeyRef:
+                  name: gitflow-manager-secrets
+                  key: SMTP_USER
+                  optional: true
+            - name: SMTP_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: gitflow-manager-secrets
+                  key: SMTP_PASS
+                  optional: true
+            - name: GEMINI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: gitflow-manager-secrets
+                  key: GEMINI_API_KEY
+                  optional: true
+          livenessProbe:
+            httpGet:
+              path: /api/init
+              port: 3000
+            initialDelaySeconds: 20
+            periodSeconds: 30
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /api/init
+              port: 3000
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"

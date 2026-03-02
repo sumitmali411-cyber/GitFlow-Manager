@@ -30,18 +30,37 @@ async function startServer() {
 
   app.use(express.json());
   app.use(cookieParser());
+  const isProduction = process.env.NODE_ENV === "production";
   app.use(
     session({
-      secret: "gitflow-secret",
+      secret: process.env.SESSION_SECRET || "gitflow-secret-change-me",
       resave: false,
       saveUninitialized: false,
       cookie: {
-        secure: true,
-        sameSite: "none",
+        secure: isProduction,
+        sameSite: isProduction ? "none" : "lax",
         httpOnly: true,
       },
     })
   );
+
+  // App initialization / health check endpoint
+  app.get("/api/init", (req, res) => {
+    const appUrl = process.env.APP_URL || `http://localhost:${PORT}`;
+    res.json({
+      status: "ok",
+      app_url: appUrl,
+      callback_url: `${appUrl}/auth/callback`,
+      github_oauth_configured: !!(process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET),
+      smtp_configured: !!(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS),
+      session_secret_set: !!(process.env.SESSION_SECRET),
+      environment: process.env.NODE_ENV || "development",
+      github_oauth_app_settings: {
+        homepage_url: appUrl,
+        authorization_callback_url: `${appUrl}/auth/callback`,
+      },
+    });
+  });
 
   // Notification Endpoint
   app.post("/api/notify/assignment", async (req, res) => {

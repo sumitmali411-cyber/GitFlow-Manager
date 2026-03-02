@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gitflow-manager-config
+  namespace: gitflow-manager
+data:
+  NODE_ENV: "production"
+  # Set APP_URL to the public URL where the app is reachable.
+  # It must match the "Homepage URL" you set in your GitHub OAuth App.
+  # If using an Ingress, this should be your Ingress host, e.g.:
+  #   APP_URL: "https://gitflow.example.com"
+  APP_URL: "http://localhost:3000"
+  SMTP_HOST: ""
+  SMTP_PORT: "587"
+  SMTP_SECURE: "false"
