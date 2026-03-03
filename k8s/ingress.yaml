@@ -1,0 +1,28 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: gitflow-manager
+  namespace: gitflow-manager
+  labels:
+    app: gitflow-manager
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: gitflow.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: gitflow-manager
+                port:
+                  number: 80
+  tls:
+    - hosts:
+        - gitflow.example.com
+      secretName: gitflow-manager-tls
