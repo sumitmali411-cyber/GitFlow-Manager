@@ -1,5 +1,0 @@
-{
-  "name": "GitFlow Manager",
-  "description": "A comprehensive GitHub workflow tool to track commits, manage issues, and view documentation with Mermaid support.",
-  "requestFramePermissions": []
-}

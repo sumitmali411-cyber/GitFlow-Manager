@@ -1,20 +1,45 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# GitFlow Manager — Angular
 
-# Run and deploy your AI Studio app
+A GitHub workflow management dashboard built with **Angular 17** (standalone components).
 
-This contains everything you need to run your app locally.
+## Features
 
-View your app in AI Studio: https://ai.studio/apps/cb7ce61f-e4e3-4443-bc3d-5f2f872bf7d1
+- Dashboard with branch & PR overview
+- GitHub OAuth integration (backend required)
+- GitFlow branch strategy visualization
 
-## Run Locally
+## Prerequisites
 
-**Prerequisites:**  Node.js
+- Node.js 18+
+- npm 9+
 
+## Getting Started
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+```bash
+npm install
+npm start          # dev server → http://localhost:4200
+npm run build      # production build → dist/
+npm test           # unit tests via Karma
+```
+
+## Project Structure
+
+```
+src/
+├── app/
+│   ├── app.component.*       # Root shell component
+│   ├── app.config.ts         # Application providers
+│   ├── app.routes.ts         # Route definitions
+│   └── dashboard/            # Dashboard feature module
+├── index.html
+├── main.ts
+└── styles.css
+```
+
+## Branch Variants
+
+| Branch | Docker | Kubernetes |
+|--------|--------|------------|
+| `claude/angular-no-docker-FyDkT`  | No | No |
+| `claude/angular-docker-FyDkT`     | Yes | No |
+| `claude/angular-docker-k8s-FyDkT` | Yes | Yes |

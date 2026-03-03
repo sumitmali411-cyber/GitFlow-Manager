@@ -1,0 +1,25 @@
+<section class="dashboard">
+  <h1 class="page-title">Dashboard</h1>
+
+  <div class="stats-grid">
+    <div class="stat-card" *ngFor="let stat of stats">
+      <div class="stat-value">{{ stat.value }}</div>
+      <div class="stat-label">{{ stat.label }}</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Recent Branches</h2>
+    <div class="branch-list">
+      <div class="branch-item" *ngFor="let branch of recentBranches">
+        <div class="branch-info">
+          <span class="branch-name">{{ branch.name }}</span>
+          <span class="branch-updated">{{ branch.updated }}</span>
+        </div>
+        <span class="branch-status" [class]="'status-' + branch.status">
+          {{ branch.status }}
+        </span>
+      </div>
+    </div>
+  </div>
+</section>

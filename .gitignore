@@ -1,8 +1,28 @@
-node_modules/
-build/
+# Angular build output
 dist/
-coverage/
+.angular/
+
+# Node modules
+node_modules/
+
+# Environment files
+.env
+.env.local
+!.env.example
+
+# IDE / editor
+.idea/
+.vscode/
+*.suo
+*.sw?
+
+# OS
 .DS_Store
 *.log
-.env*
-!.env.example
+Thumbs.db
+
+# Test coverage
+coverage/
+
+# TypeScript cache
+*.tsbuildinfo
