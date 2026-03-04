@@ -130,7 +130,7 @@ async function startServer() {
     const params = new URLSearchParams({
       client_id: process.env.GITHUB_CLIENT_ID || "",
       redirect_uri: redirectUri,
-      scope: "repo user",
+      scope: "repo user security_events",
       state: Math.random().toString(36).substring(7),
     });
     res.json({ url: `https://github.com/login/oauth/authorize?${params.toString()}` });
@@ -194,6 +194,12 @@ async function startServer() {
       });
       res.json(response.data);
     } catch (error: any) {
+      // Handle Dependabot alerts specifically - return empty list if not available/no permission
+      if (githubPath.includes('dependabot/alerts') && (error.response?.status === 404 || error.response?.status === 403 || error.response?.status === 410)) {
+        console.warn(`Dependabot alerts not available for ${githubPath} (Status: ${error.response?.status})`);
+        return res.json([]);
+      }
+      
       console.error(`GitHub API Error (${githubPath}):`, error.response?.data || error.message);
       res.status(error.response?.status || 500).json(error.response?.data || { error: "GitHub API error" });
     }

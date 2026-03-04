@@ -12,12 +12,14 @@ import {
 import { motion } from 'motion/react';
 import { Repo } from '../services/githubService';
 import { format } from 'date-fns';
+import { CreateRepoModal } from './CreateRepoModal';
 
 interface RepoListProps {
   repos: Repo[];
   searchQuery: string;
   onSearchChange: (query: string) => void;
   onRepoSelect: (repo: Repo) => void;
+  onCreateRepo: (data: { name: string; description: string; private: boolean }) => Promise<void>;
   loading: boolean;
   error: string | null;
 }
@@ -27,9 +29,11 @@ export const RepoList: React.FC<RepoListProps> = ({
   searchQuery, 
   onSearchChange, 
   onRepoSelect, 
+  onCreateRepo,
   loading, 
   error 
 }) => {
+  const [isCreateModalOpen, setIsCreateModalOpen] = React.useState(false);
   const filteredRepos = repos.filter(r => 
     r.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     r.full_name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -54,11 +58,20 @@ export const RepoList: React.FC<RepoListProps> = ({
               className="w-full bg-zinc-900 border border-zinc-800 rounded-xl pl-12 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50 transition-all"
             />
           </div>
-          <button className="p-3 bg-brand text-white rounded-xl shadow-lg shadow-brand/20 hover:bg-brand-hover transition-all">
+          <button 
+            onClick={() => setIsCreateModalOpen(true)}
+            className="p-3 bg-brand text-white rounded-xl shadow-lg shadow-brand/20 hover:bg-brand-hover transition-all"
+          >
             <Plus size={20} />
           </button>
         </div>
       </header>
+
+      <CreateRepoModal 
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onCreate={onCreateRepo}
+      />
 
       {error && (
         <div className="p-4 bg-red-400/10 border border-red-400/20 rounded-xl flex items-center gap-3 text-red-400">

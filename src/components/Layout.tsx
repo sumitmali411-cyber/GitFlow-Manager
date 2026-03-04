@@ -41,8 +41,8 @@ export const Layout: React.FC<LayoutProps> = ({
     <div className="min-h-screen flex flex-col sm:flex-row">
       {/* Sidebar */}
       <aside className={cn(
-        "w-full sm:w-64 border-r border-zinc-800 flex flex-col sticky top-0 h-auto sm:h-screen z-40",
-        theme === 'glass' ? 'glass-effect' : 'bg-zinc-950'
+        "w-full sm:w-64 border-r flex flex-col sticky top-0 h-auto sm:h-screen z-40",
+        theme === 'glass' ? 'glass-effect' : 'bg-zinc-950 border-zinc-800'
       )}>
         <div className="p-6 flex items-center gap-3">
           <div className="p-2 bg-brand rounded-lg">

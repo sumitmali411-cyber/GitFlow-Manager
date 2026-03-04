@@ -15,6 +15,7 @@ import { motion } from 'motion/react';
 import { format } from 'date-fns';
 import { githubService, Repo, Issue, PullRequest, Vulnerability } from '../services/githubService';
 import { cn } from '../lib/utils';
+import { CreateRepoModal } from './CreateRepoModal';
 
 interface DashboardProps {
   token: string;
@@ -27,43 +28,49 @@ export const Dashboard: React.FC<DashboardProps> = ({ token, onRepoSelect }) => 
   const [pulls, setPulls] = useState<PullRequest[]>([]);
   const [vulnerabilities, setVulnerabilities] = useState<Vulnerability[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
+  const fetchDashboardData = async () => {
+    setLoading(true);
+    try {
+      const fetchedRepos = await githubService.getRepos(token);
+      setRepos(fetchedRepos);
+      
+      // Fetch data for the first few repos to populate activity
+      const recentRepos = fetchedRepos.slice(0, 3);
+      const allIssues: Issue[] = [];
+      const allPulls: PullRequest[] = [];
+      const allVulnerabilities: Vulnerability[] = [];
+
+      for (const repo of recentRepos) {
+        const [repoIssues, repoPulls, repoVulnerabilities] = await Promise.all([
+          githubService.getIssues(token, repo.full_name, { state: 'open', per_page: 5 }),
+          githubService.getPulls(token, repo.full_name, 'open'),
+          githubService.getVulnerabilities(token, repo.full_name)
+        ]);
+        allIssues.push(...repoIssues);
+        allPulls.push(...repoPulls);
+        allVulnerabilities.push(...repoVulnerabilities);
+      }
+
+      setIssues(allIssues.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()));
+      setPulls(allPulls.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()));
+      setVulnerabilities(allVulnerabilities);
+    } catch (err) {
+      console.error('Failed to fetch dashboard data:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchDashboardData = async () => {
-      setLoading(true);
-      try {
-        const fetchedRepos = await githubService.getRepos(token);
-        setRepos(fetchedRepos);
-        
-        // Fetch data for the first few repos to populate activity
-        const recentRepos = fetchedRepos.slice(0, 3);
-        const allIssues: Issue[] = [];
-        const allPulls: PullRequest[] = [];
-        const allVulnerabilities: Vulnerability[] = [];
-
-        for (const repo of recentRepos) {
-          const [repoIssues, repoPulls, repoVulnerabilities] = await Promise.all([
-            githubService.getIssues(token, repo.full_name, { state: 'open', per_page: 5 }),
-            githubService.getPulls(token, repo.full_name, 'open'),
-            githubService.getVulnerabilities(token, repo.full_name)
-          ]);
-          allIssues.push(...repoIssues);
-          allPulls.push(...repoPulls);
-          allVulnerabilities.push(...repoVulnerabilities);
-        }
-
-        setIssues(allIssues.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()));
-        setPulls(allPulls.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()));
-        setVulnerabilities(allVulnerabilities);
-      } catch (err) {
-        console.error('Failed to fetch dashboard data:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchDashboardData();
   }, [token]);
+
+  const handleCreateRepo = async (data: { name: string; description: string; private: boolean }) => {
+    await githubService.createRepo(token, data);
+    await fetchDashboardData();
+  };
 
   const stats = [
     { label: 'Active Projects', value: repos.length, icon: FolderGit2, color: 'text-blue-400', bg: 'bg-blue-400/10' },
@@ -87,11 +94,20 @@ export const Dashboard: React.FC<DashboardProps> = ({ token, onRepoSelect }) => 
           <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
           <p className="text-zinc-500 mt-1">Overview of your active projects and recent events.</p>
         </div>
-        <button className="flex items-center gap-2 bg-brand hover:bg-brand-hover text-white px-4 py-2 rounded-xl font-medium transition-all shadow-lg shadow-brand/20">
+        <button 
+          onClick={() => setIsCreateModalOpen(true)}
+          className="flex items-center gap-2 bg-brand hover:bg-brand-hover text-white px-4 py-2 rounded-xl font-medium transition-all shadow-lg shadow-brand/20"
+        >
           <Plus size={18} />
           New Project
         </button>
       </header>
+
+      <CreateRepoModal 
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onCreate={handleCreateRepo}
+      />
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

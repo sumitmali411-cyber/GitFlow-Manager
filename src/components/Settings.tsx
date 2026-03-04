@@ -9,13 +9,16 @@ import {
   Moon,
   Sun,
   Zap,
-  Layers
+  Layers,
+  ShieldCheck,
+  Lock
 } from 'lucide-react';
 import { useTheme, Theme } from '../context/ThemeContext';
 import { cn } from '../lib/utils';
+import { User as GitHubUser } from '../services/githubService';
 
 interface SettingsProps {
-  user: any;
+  user: GitHubUser | null;
   smtpStatus: { checked: boolean; configured: boolean; message: string };
   onVerifySmtp: () => void;
   onTestEmail: (email: string) => void;
@@ -137,6 +140,53 @@ export const Settings: React.FC<SettingsProps> = ({
               </div>
             </button>
           ))}
+        </div>
+      </section>
+
+      {/* Security & Authentication */}
+      <section className="space-y-4">
+        <div className="flex items-center gap-2">
+          <ShieldCheck size={20} className="text-emerald-400" />
+          <h2 className="text-xl font-bold">Security & Authentication</h2>
+        </div>
+        <div className="card-base p-8 space-y-6">
+          <div className="flex items-center justify-between p-4 bg-zinc-900/50 rounded-2xl border border-zinc-800/50">
+            <div className="flex items-center gap-3">
+              <div className={cn(
+                "p-2 rounded-lg",
+                user?.two_factor_authentication ? "bg-emerald-400/10 text-emerald-400" : "bg-amber-400/10 text-amber-400"
+              )}>
+                <Lock size={20} />
+              </div>
+              <div>
+                <p className="text-sm font-bold">GitHub Two-Factor Authentication</p>
+                <p className="text-xs text-zinc-500">
+                  {user?.two_factor_authentication 
+                    ? "Your account is protected by GitHub 2FA." 
+                    : "2FA status could not be verified or is disabled on GitHub."}
+                </p>
+              </div>
+            </div>
+            {user?.two_factor_authentication && (
+              <div className="flex items-center gap-1 text-emerald-400 text-xs font-bold uppercase tracking-wider">
+                <CheckCircle2 size={14} />
+                Verified
+              </div>
+            )}
+          </div>
+
+          <div className="p-4 bg-blue-400/5 border border-blue-400/10 rounded-2xl">
+            <div className="flex gap-3">
+              <AlertCircle className="text-blue-400 shrink-0" size={18} />
+              <div className="space-y-1">
+                <p className="text-sm font-bold text-blue-400">How 2FA works here</p>
+                <p className="text-xs text-zinc-400 leading-relaxed">
+                  This application uses GitHub OAuth for authentication. When you log in, 2FA is handled directly by GitHub. 
+                  We never see or store your 2FA codes, ensuring your credentials remain completely secure within GitHub's infrastructure.
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 

@@ -23,6 +23,7 @@ export interface User {
   public_repos: number;
   followers: number;
   following: number;
+  two_factor_authentication?: boolean;
 }
 
 export interface Commit {
@@ -169,6 +170,11 @@ export const githubService = {
 
   getBranches: async (token: string, fullName: string) => {
     const res = await axios.get(`${API_BASE}/repos/${fullName}/branches`, { headers: getHeaders(token) });
+    return res.data;
+  },
+
+  createRepo: async (token: string, data: { name: string; description?: string; private?: boolean }) => {
+    const res = await axios.post(`${API_BASE}/user/repos`, data, { headers: getHeaders(token) });
     return res.data;
   }
 };

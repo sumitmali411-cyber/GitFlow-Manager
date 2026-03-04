@@ -122,6 +122,11 @@ export default function App() {
     setSelectedRepo(null);
   };
 
+  const handleCreateRepo = async (data: { name: string; description: string; private: boolean }) => {
+    await githubService.createRepo(token!, data);
+    await fetchRepos();
+  };
+
   if (!token) {
     return (
       <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col items-center justify-center p-4">
@@ -196,6 +201,7 @@ export default function App() {
                   searchQuery={searchQuery}
                   onSearchChange={setSearchQuery}
                   onRepoSelect={(repo) => setSelectedRepo(repo)}
+                  onCreateRepo={handleCreateRepo}
                   loading={loading}
                   error={error}
                 />
