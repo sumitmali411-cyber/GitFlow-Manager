@@ -102,7 +102,7 @@ async function startServer() {
   });
 
   // Verify SMTP Configuration Endpoint
-  app.get("/api/notify/verify", async (req, res) => {
+  app.get("/api/notify/verify", async (_req, res) => {
     if (!process.env.SMTP_USER || !process.env.SMTP_PASS || !process.env.SMTP_HOST) {
       return res.status(400).json({ 
         configured: false, 
@@ -125,7 +125,7 @@ async function startServer() {
   });
 
   // GitHub OAuth Routes
-  app.get("/api/auth/url", (req, res) => {
+  app.get("/api/auth/url", (_req, res) => {
     const redirectUri = `${process.env.APP_URL || `http://localhost:${PORT}`}/auth/callback`;
     const params = new URLSearchParams({
       client_id: process.env.GITHUB_CLIENT_ID || "",
@@ -181,7 +181,7 @@ async function startServer() {
     const token = req.headers.authorization;
     if (!token) return res.status(401).json({ error: "Unauthorized" });
 
-    const githubPath = req.params[0];
+    const githubPath = (req.params as any)[0];
     const query = new URLSearchParams(req.query as any).toString();
     
     try {
@@ -203,7 +203,7 @@ async function startServer() {
     const token = req.headers.authorization;
     if (!token) return res.status(401).json({ error: "Unauthorized" });
 
-    const githubPath = req.params[0];
+    const githubPath = (req.params as any)[0];
     
     try {
       const response = await axios.post(`https://api.github.com/${githubPath}`, req.body, {
@@ -224,7 +224,7 @@ async function startServer() {
     const token = req.headers.authorization;
     if (!token) return res.status(401).json({ error: "Unauthorized" });
 
-    const githubPath = req.params[0];
+    const githubPath = (req.params as any)[0];
     
     try {
       const response = await axios.patch(`https://api.github.com/${githubPath}`, req.body, {
@@ -250,7 +250,7 @@ async function startServer() {
     app.use(vite.middlewares);
   } else {
     app.use(express.static(path.join(__dirname, "dist")));
-    app.get("*", (req, res) => {
+    app.get("*", (_req, res) => {
       res.sendFile(path.join(__dirname, "dist", "index.html"));
     });
   }
