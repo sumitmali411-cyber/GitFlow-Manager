@@ -193,6 +193,7 @@ export default function App() {
                 <Dashboard 
                   token={token} 
                   onRepoSelect={(repo) => setSelectedRepo(repo)} 
+                  onViewChange={(v) => { setView(v); setSelectedRepo(null); }}
                 />
               )}
               {view === 'repos' && (
@@ -215,6 +216,7 @@ export default function App() {
                   testEmail={testEmail}
                   setTestEmail={setTestEmail}
                   isTestingEmail={isTestingEmail}
+                  onLogout={handleLogout}
                 />
               )}
             </motion.div>

@@ -45,7 +45,7 @@ export const CreateRepoModal: React.FC<CreateRepoModalProps> = ({ isOpen, onClos
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             className="card-base w-full max-w-lg overflow-hidden shadow-2xl"
           >
-            <div className="p-6 border-b border-zinc-800 flex items-center justify-between">
+            <div className="p-6 border-b border-app-border flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-brand/10 text-brand rounded-lg">
                   <FolderPlus size={20} />
@@ -54,7 +54,7 @@ export const CreateRepoModal: React.FC<CreateRepoModalProps> = ({ isOpen, onClos
               </div>
               <button 
                 onClick={onClose}
-                className="p-2 hover:bg-zinc-900 rounded-full transition-colors text-zinc-500 hover:text-white"
+                className="p-2 hover:bg-app-card-hover rounded-full transition-colors text-app-text-muted hover:text-app-text"
               >
                 <X size={20} />
               </button>
@@ -68,25 +68,25 @@ export const CreateRepoModal: React.FC<CreateRepoModalProps> = ({ isOpen, onClos
               )}
 
               <div className="space-y-2">
-                <label className="text-sm font-bold text-zinc-400 uppercase tracking-wider">Repository Name</label>
+                <label className="text-sm font-bold text-app-text-muted uppercase tracking-wider">Repository Name</label>
                 <input
                   autoFocus
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="e.g. my-awesome-project"
-                  className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50 transition-all"
+                  className="w-full bg-app-card border border-app-border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50 transition-all"
                   required
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-bold text-zinc-400 uppercase tracking-wider">Description (Optional)</label>
+                <label className="text-sm font-bold text-app-text-muted uppercase tracking-wider">Description (Optional)</label>
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="What is this project about?"
-                  className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50 transition-all min-h-[100px] resize-none"
+                  className="w-full bg-app-card border border-app-border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50 transition-all min-h-[100px] resize-none"
                 />
               </div>
 
@@ -98,7 +98,7 @@ export const CreateRepoModal: React.FC<CreateRepoModalProps> = ({ isOpen, onClos
                     "flex flex-col items-center gap-3 p-4 rounded-2xl border transition-all text-center",
                     !isPrivate 
                       ? "bg-brand/5 border-brand text-brand" 
-                      : "bg-zinc-900/50 border-zinc-800 text-zinc-500 hover:border-zinc-700"
+                      : "bg-app-card/50 border-app-border text-app-text-muted hover:border-app-border-hover"
                   )}
                 >
                   <Globe size={24} />
@@ -115,7 +115,7 @@ export const CreateRepoModal: React.FC<CreateRepoModalProps> = ({ isOpen, onClos
                     "flex flex-col items-center gap-3 p-4 rounded-2xl border transition-all text-center",
                     isPrivate 
                       ? "bg-brand/5 border-brand text-brand" 
-                      : "bg-zinc-900/50 border-zinc-800 text-zinc-500 hover:border-zinc-700"
+                      : "bg-app-card/50 border-app-border text-app-text-muted hover:border-app-border-hover"
                   )}
                 >
                   <Shield size={24} />
@@ -130,7 +130,7 @@ export const CreateRepoModal: React.FC<CreateRepoModalProps> = ({ isOpen, onClos
                 <button
                   type="button"
                   onClick={onClose}
-                  className="flex-1 px-6 py-3 rounded-xl text-sm font-bold text-zinc-400 hover:bg-zinc-900 transition-all"
+                  className="flex-1 px-6 py-3 rounded-xl text-sm font-bold text-app-text-muted hover:bg-app-card-hover transition-all"
                 >
                   Cancel
                 </button>

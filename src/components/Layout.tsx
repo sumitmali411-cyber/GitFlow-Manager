@@ -41,8 +41,8 @@ export const Layout: React.FC<LayoutProps> = ({
     <div className="min-h-screen flex flex-col sm:flex-row">
       {/* Sidebar */}
       <aside className={cn(
-        "w-full sm:w-64 border-r flex flex-col sticky top-0 h-auto sm:h-screen z-40",
-        theme === 'glass' ? 'glass-effect' : 'bg-zinc-950 border-zinc-800'
+        "w-full sm:w-64 border-r flex flex-col sticky top-0 h-auto sm:h-screen z-40 transition-colors",
+        theme === 'glass' ? 'glass-effect' : 'bg-app-bg border-app-border'
       )}>
         <div className="p-6 flex items-center gap-3">
           <div className="p-2 bg-brand rounded-lg">
@@ -58,7 +58,7 @@ export const Layout: React.FC<LayoutProps> = ({
               "w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all",
               activeView === 'dashboard' 
                 ? "bg-brand text-white shadow-lg shadow-brand/20" 
-                : "text-zinc-400 hover:text-white hover:bg-zinc-900"
+                : "text-app-text-dim hover:text-app-text hover:bg-app-card-hover"
             )}
           >
             <LayoutDashboard size={20} />
@@ -71,7 +71,7 @@ export const Layout: React.FC<LayoutProps> = ({
               "w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all",
               activeView === 'repos' 
                 ? "bg-brand text-white shadow-lg shadow-brand/20" 
-                : "text-zinc-400 hover:text-white hover:bg-zinc-900"
+                : "text-app-text-dim hover:text-app-text hover:bg-app-card-hover"
             )}
           >
             <FolderGit2 size={20} />
@@ -84,7 +84,7 @@ export const Layout: React.FC<LayoutProps> = ({
               "w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all",
               activeView === 'settings' 
                 ? "bg-brand text-white shadow-lg shadow-brand/20" 
-                : "text-zinc-400 hover:text-white hover:bg-zinc-900"
+                : "text-app-text-dim hover:text-app-text hover:bg-app-card-hover"
             )}
           >
             <SettingsIcon size={20} />
@@ -92,7 +92,7 @@ export const Layout: React.FC<LayoutProps> = ({
           </button>
         </nav>
 
-        <div className="p-4 border-t border-zinc-800 space-y-4">
+        <div className="p-4 border-t border-app-border space-y-4">
           {/* Theme Selector */}
           <div className="grid grid-cols-4 gap-2">
             {themes.map((t) => (
@@ -102,8 +102,8 @@ export const Layout: React.FC<LayoutProps> = ({
                 className={cn(
                   "p-2 rounded-lg flex items-center justify-center transition-all",
                   theme === t.id 
-                    ? "bg-zinc-800 text-white" 
-                    : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900"
+                    ? "bg-app-card-hover text-app-text" 
+                    : "text-app-text-muted hover:text-app-text-dim hover:bg-app-card"
                 )}
                 title={t.label}
               >
@@ -113,20 +113,20 @@ export const Layout: React.FC<LayoutProps> = ({
           </div>
 
           {user && (
-            <div className="flex items-center gap-3 p-2 rounded-xl bg-zinc-900/50 border border-zinc-800/50">
+            <div className="flex items-center gap-3 p-2 rounded-xl bg-app-card/50 border border-app-border/50">
               <img 
                 src={user.avatar_url} 
                 alt={user.login} 
-                className="w-10 h-10 rounded-full border border-zinc-700"
+                className="w-10 h-10 rounded-full border border-app-border"
                 referrerPolicy="no-referrer"
               />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-bold truncate">{user.name || user.login}</p>
-                <p className="text-xs text-zinc-500 truncate">@{user.login}</p>
+                <p className="text-xs text-app-text-muted truncate">@{user.login}</p>
               </div>
               <button 
                 onClick={onLogout}
-                className="p-2 text-zinc-500 hover:text-red-400 transition-colors"
+                className="p-2 text-app-text-muted hover:text-red-400 transition-colors"
               >
                 <LogOut size={18} />
               </button>

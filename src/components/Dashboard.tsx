@@ -15,18 +15,31 @@ import { motion } from 'motion/react';
 import { format } from 'date-fns';
 import { githubService, Repo, Issue, PullRequest, Vulnerability } from '../services/githubService';
 import { cn } from '../lib/utils';
+import { calculateRepoStatus } from '../lib/repoUtils';
 import { CreateRepoModal } from './CreateRepoModal';
+
+interface RepoDetails {
+  progress: number;
+  status: {
+    label: string;
+    color: string;
+    bg: string;
+  };
+  pullsCount: number;
+}
 
 interface DashboardProps {
   token: string;
   onRepoSelect: (repo: Repo) => void;
+  onViewChange: (view: 'repos' | 'dashboard' | 'settings') => void;
 }
 
-export const Dashboard: React.FC<DashboardProps> = ({ token, onRepoSelect }) => {
+export const Dashboard: React.FC<DashboardProps> = ({ token, onRepoSelect, onViewChange }) => {
   const [repos, setRepos] = useState<Repo[]>([]);
   const [issues, setIssues] = useState<Issue[]>([]);
   const [pulls, setPulls] = useState<PullRequest[]>([]);
   const [vulnerabilities, setVulnerabilities] = useState<Vulnerability[]>([]);
+  const [repoDetails, setRepoDetails] = useState<Record<string, RepoDetails>>({});
   const [loading, setLoading] = useState(true);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
@@ -37,22 +50,33 @@ export const Dashboard: React.FC<DashboardProps> = ({ token, onRepoSelect }) => 
       setRepos(fetchedRepos);
       
       // Fetch data for the first few repos to populate activity
-      const recentRepos = fetchedRepos.slice(0, 3);
+      const recentRepos = fetchedRepos.slice(0, 4);
       const allIssues: Issue[] = [];
       const allPulls: PullRequest[] = [];
       const allVulnerabilities: Vulnerability[] = [];
+      const details: Record<string, RepoDetails> = {};
 
       for (const repo of recentRepos) {
-        const [repoIssues, repoPulls, repoVulnerabilities] = await Promise.all([
+        const [repoIssues, repoPulls, repoVulnerabilities, repoMilestones] = await Promise.all([
           githubService.getIssues(token, repo.full_name, { state: 'open', per_page: 5 }),
           githubService.getPulls(token, repo.full_name, 'open'),
-          githubService.getVulnerabilities(token, repo.full_name)
+          githubService.getVulnerabilities(token, repo.full_name),
+          githubService.getMilestones(token, repo.full_name)
         ]);
+        
         allIssues.push(...repoIssues);
         allPulls.push(...repoPulls);
         allVulnerabilities.push(...repoVulnerabilities);
+        
+        const { progress, status } = calculateRepoStatus(repoMilestones, repo.open_issues_count);
+        details[repo.full_name] = {
+          progress,
+          status,
+          pullsCount: repoPulls.length
+        };
       }
 
+      setRepoDetails(details);
       setIssues(allIssues.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()));
       setPulls(allPulls.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()));
       setVulnerabilities(allVulnerabilities);
@@ -92,7 +116,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ token, onRepoSelect }) => 
       <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-zinc-500 mt-1">Overview of your active projects and recent events.</p>
+          <p className="text-app-text-dim mt-1">Overview of your active projects and recent events.</p>
         </div>
         <button 
           onClick={() => setIsCreateModalOpen(true)}
@@ -123,7 +147,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ token, onRepoSelect }) => 
               <stat.icon className={stat.color} size={24} />
             </div>
             <div>
-              <p className="text-sm font-medium text-zinc-500">{stat.label}</p>
+              <p className="text-sm font-medium text-app-text-dim">{stat.label}</p>
               <p className="text-3xl font-bold mt-1">{stat.value}</p>
             </div>
           </motion.div>
@@ -136,7 +160,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ token, onRepoSelect }) => 
           <section className="space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-bold">Active Projects</h2>
-              <button className="text-sm text-brand font-medium hover:underline">View all</button>
+              <button 
+                onClick={() => onViewChange('repos')}
+                className="text-sm text-brand font-medium hover:underline"
+              >
+                View all
+              </button>
             </div>
             
             <div className="grid grid-cols-1 gap-4">
@@ -149,30 +178,37 @@ export const Dashboard: React.FC<DashboardProps> = ({ token, onRepoSelect }) => 
                   <div className="flex items-start justify-between">
                     <div className="space-y-1">
                       <h3 className="font-bold text-lg group-hover:text-brand transition-colors">{repo.name}</h3>
-                      <p className="text-sm text-zinc-500 line-clamp-2">{repo.description || 'No description provided.'}</p>
+                      <p className="text-sm text-app-text-dim line-clamp-2">{repo.description || 'No description provided.'}</p>
                     </div>
-                    <div className="px-3 py-1 bg-emerald-400/10 text-emerald-400 text-xs font-bold rounded-full">
-                      On Track
+                    <div className={cn(
+                      "px-3 py-1 text-xs font-bold rounded-full",
+                      repoDetails[repo.full_name]?.status.bg || 'bg-emerald-400/10',
+                      repoDetails[repo.full_name]?.status.color || 'text-emerald-400'
+                    )}>
+                      {repoDetails[repo.full_name]?.status.label || 'On Track'}
                     </div>
                   </div>
                   
                   <div className="mt-6 space-y-4">
-                    <div className="flex items-center justify-between text-xs text-zinc-500">
+                    <div className="flex items-center justify-between text-xs text-app-text-dim">
                       <span>Progress</span>
-                      <span className="font-bold text-zinc-300">68%</span>
+                      <span className="font-bold text-app-text">{repoDetails[repo.full_name]?.progress || 0}%</span>
                     </div>
-                    <div className="h-2 bg-zinc-800 rounded-full overflow-hidden">
-                      <div className="h-full bg-brand w-[68%]" />
+                    <div className="h-2 bg-app-bg rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-brand transition-all duration-500" 
+                        style={{ width: `${repoDetails[repo.full_name]?.progress || 0}%` }}
+                      />
                     </div>
                     
-                    <div className="flex items-center gap-4 text-xs text-zinc-500">
+                    <div className="flex items-center gap-4 text-xs text-app-text-dim">
                       <div className="flex items-center gap-1">
                         <AlertCircle size={14} />
                         {repo.open_issues_count} Issues
                       </div>
                       <div className="flex items-center gap-1">
                         <GitPullRequest size={14} />
-                        3 PRs
+                        {repoDetails[repo.full_name]?.pullsCount || 0} PRs
                       </div>
                       <div className="flex items-center gap-1">
                         <Clock size={14} />
@@ -190,16 +226,22 @@ export const Dashboard: React.FC<DashboardProps> = ({ token, onRepoSelect }) => 
             <h2 className="text-xl font-bold">Tools & Integrations</h2>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               {[
-                { name: 'GitHub Actions', status: 'Active', icon: Zap, color: 'text-emerald-400' },
-                { name: 'Dependabot', status: 'Enabled', icon: ShieldAlert, color: 'text-blue-400' },
-                { name: 'Vercel', status: 'Connected', icon: ExternalLink, color: 'text-white' },
-                { name: 'Slack', status: 'Configured', icon: Mail, color: 'text-purple-400' },
+                { name: 'GitHub Actions', status: 'Active', icon: Zap, color: 'text-emerald-400', url: 'https://github.com/features/actions' },
+                { name: 'Dependabot', status: 'Enabled', icon: ShieldAlert, color: 'text-blue-400', url: 'https://github.com/features/security' },
+                { name: 'Vercel', status: 'Connected', icon: ExternalLink, color: 'text-white', url: 'https://vercel.com' },
+                { name: 'Slack', status: 'Configured', icon: Mail, color: 'text-purple-400', url: 'https://slack.com' },
               ].map((tool) => (
-                <div key={tool.name} className="card-base p-4 text-center space-y-2">
-                  <tool.icon className={cn("mx-auto", tool.color)} size={20} />
+                <a 
+                  key={tool.name} 
+                  href={tool.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="card-base p-4 text-center space-y-2 hover:border-brand transition-all group"
+                >
+                  <tool.icon className={cn("mx-auto group-hover:scale-110 transition-transform", tool.color)} size={20} />
                   <p className="text-xs font-bold">{tool.name}</p>
-                  <p className="text-[10px] text-zinc-500 uppercase tracking-wider">{tool.status}</p>
-                </div>
+                  <p className="text-[10px] text-app-text-dim uppercase tracking-wider">{tool.status}</p>
+                </a>
               ))}
             </div>
           </section>
@@ -210,14 +252,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ token, onRepoSelect }) => 
           {/* Recent Activity */}
           <section className="space-y-4">
             <h2 className="text-xl font-bold">Recent Activity</h2>
-            <div className="card-base divide-y divide-zinc-800/50">
+            <div className="card-base divide-y divide-app-border/50">
               {issues.slice(0, 5).map((issue) => (
-                <div key={issue.id} className="p-4 space-y-2 hover:bg-zinc-900/30 transition-colors">
+                <div key={issue.id} className="p-4 space-y-2 hover:bg-app-card-hover/30 transition-colors">
                   <div className="flex items-center gap-2">
                     <AlertCircle size={14} className="text-amber-400" />
                     <span className="text-sm font-medium truncate">{issue.title}</span>
                   </div>
-                  <div className="flex items-center justify-between text-xs text-zinc-500">
+                  <div className="flex items-center justify-between text-xs text-app-text-dim">
                     <div className="flex items-center gap-2">
                       <span className="text-brand font-mono">#{issue.number}</span>
                       <span>•</span>
@@ -227,7 +269,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ token, onRepoSelect }) => 
                   </div>
                 </div>
               ))}
-              <button className="w-full py-3 text-xs text-zinc-500 hover:text-white transition-colors font-medium">
+              <button 
+                onClick={() => onViewChange('repos')}
+                className="w-full py-3 text-xs text-app-text-dim hover:text-app-text transition-colors font-medium"
+              >
                 View all activity
               </button>
             </div>
@@ -236,17 +281,17 @@ export const Dashboard: React.FC<DashboardProps> = ({ token, onRepoSelect }) => 
           {/* Vulnerabilities */}
           <section className="space-y-4">
             <h2 className="text-xl font-bold">Vulnerabilities</h2>
-            <div className="card-base divide-y divide-zinc-800/50">
+            <div className="card-base divide-y divide-app-border/50">
               {vulnerabilities.length > 0 ? (
                 vulnerabilities.slice(0, 5).map((v) => (
-                  <div key={v.id} className="p-4 space-y-2 hover:bg-zinc-900/30 transition-colors cursor-pointer">
+                  <div key={v.id} className="p-4 space-y-2 hover:bg-app-card-hover/30 transition-colors cursor-pointer">
                     <div className="flex items-center gap-2">
                       <ShieldAlert size={14} className={cn(
                         v.severity === 'critical' || v.severity === 'high' ? 'text-red-400' : 'text-amber-400'
                       )} />
                       <span className="text-sm font-medium truncate">{v.summary}</span>
                     </div>
-                    <div className="flex items-center justify-between text-xs text-zinc-500">
+                    <div className="flex items-center justify-between text-xs text-app-text-dim">
                       <span className="uppercase font-bold">{v.severity}</span>
                       <span className="font-mono">{v.package_name}</span>
                     </div>
@@ -256,7 +301,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ token, onRepoSelect }) => 
                 <div className="p-8 text-center space-y-2">
                   <CheckCircle2 size={32} className="text-emerald-400 mx-auto" />
                   <p className="text-sm font-medium">No vulnerabilities found</p>
-                  <p className="text-xs text-zinc-500">Your projects are secure.</p>
+                  <p className="text-xs text-app-text-dim">Your projects are secure.</p>
                 </div>
               )}
             </div>

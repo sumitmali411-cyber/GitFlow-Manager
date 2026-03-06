@@ -2,7 +2,6 @@ import React from 'react';
 import { 
   User, 
   Github, 
-  Shield, 
   Bell, 
   CheckCircle2,
   AlertCircle,
@@ -19,6 +18,7 @@ import { User as GitHubUser } from '../services/githubService';
 
 interface SettingsProps {
   user: GitHubUser | null;
+  onLogout: () => void;
   smtpStatus: { checked: boolean; configured: boolean; message: string };
   onVerifySmtp: () => void;
   onTestEmail: (email: string) => void;
@@ -29,6 +29,7 @@ interface SettingsProps {
 
 export const Settings: React.FC<SettingsProps> = ({ 
   user, 
+  onLogout,
   smtpStatus, 
   onVerifySmtp, 
   onTestEmail, 
@@ -46,14 +47,40 @@ export const Settings: React.FC<SettingsProps> = ({
   ];
 
   return (
-    <div className="space-y-8 max-w-4xl">
-      <header>
+    <div className="max-w-4xl mx-auto space-y-8">
+      <header className="space-y-1">
         <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
-        <p className="text-zinc-500 mt-1">Manage your account and application preferences.</p>
+        <p className="text-zinc-500">Manage your account preferences and integrations.</p>
       </header>
 
-      {/* GitHub Profile */}
-      <section className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        {/* Sidebar Navigation */}
+        <div className="space-y-1 sticky top-8 h-fit">
+          {[
+            { id: 'profile', label: 'Profile', icon: User },
+            { id: 'appearance', label: 'Appearance', icon: Layers },
+            { id: 'security', label: 'Security', icon: ShieldCheck },
+            { id: 'notifications', label: 'Notifications', icon: Bell },
+            { id: 'integrations', label: 'Integrations', icon: Zap },
+          ].map((item) => (
+            <button
+              key={item.id}
+              onClick={() => {
+                const element = document.getElementById(item.id);
+                if (element) element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }}
+              className="w-full flex items-center gap-3 px-4 py-2 rounded-xl text-sm font-medium text-app-text-dim hover:text-app-text hover:bg-app-card-hover transition-all"
+            >
+              <item.icon size={18} />
+              {item.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Content Area */}
+        <div className="md:col-span-2 space-y-8">
+          {/* GitHub Profile */}
+          <section id="profile" className="space-y-4 scroll-mt-8">
         <div className="flex items-center gap-2">
           <User size={20} className="text-brand" />
           <h2 className="text-xl font-bold">Public Profile</h2>
@@ -64,7 +91,7 @@ export const Settings: React.FC<SettingsProps> = ({
               <img 
                 src={user?.avatar_url} 
                 alt={user?.login} 
-                className="w-32 h-32 rounded-full border-4 border-zinc-800 shadow-2xl"
+                className="w-32 h-32 rounded-full border-4 border-app-border shadow-2xl"
                 referrerPolicy="no-referrer"
               />
               <button className="absolute bottom-0 right-0 p-2 bg-brand text-white rounded-full shadow-lg hover:scale-110 transition-transform">
@@ -89,29 +116,29 @@ export const Settings: React.FC<SettingsProps> = ({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-8 border-t border-zinc-800">
-            <div className="text-center p-4 rounded-xl bg-zinc-900/50 border border-zinc-800/50">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-8 border-t border-app-border">
+            <div className="text-center p-4 rounded-xl bg-app-card/50 border border-app-border/50">
               <p className="text-2xl font-bold">{user?.public_repos || 0}</p>
-              <p className="text-xs text-zinc-500 uppercase font-bold mt-1">Repos</p>
+              <p className="text-xs text-app-text-muted uppercase font-bold mt-1">Repos</p>
             </div>
-            <div className="text-center p-4 rounded-xl bg-zinc-900/50 border border-zinc-800/50">
+            <div className="text-center p-4 rounded-xl bg-app-card/50 border border-app-border/50">
               <p className="text-2xl font-bold">{user?.followers || 0}</p>
-              <p className="text-xs text-zinc-500 uppercase font-bold mt-1">Followers</p>
+              <p className="text-xs text-app-text-muted uppercase font-bold mt-1">Followers</p>
             </div>
-            <div className="text-center p-4 rounded-xl bg-zinc-900/50 border border-zinc-800/50">
+            <div className="text-center p-4 rounded-xl bg-app-card/50 border border-app-border/50">
               <p className="text-2xl font-bold">{user?.following || 0}</p>
-              <p className="text-xs text-zinc-500 uppercase font-bold mt-1">Following</p>
+              <p className="text-xs text-app-text-muted uppercase font-bold mt-1">Following</p>
             </div>
-            <div className="text-center p-4 rounded-xl bg-zinc-900/50 border border-zinc-800/50">
+            <div className="text-center p-4 rounded-xl bg-app-card/50 border border-app-border/50">
               <p className="text-2xl font-bold">12</p>
-              <p className="text-xs text-zinc-500 uppercase font-bold mt-1">Orgs</p>
+              <p className="text-xs text-app-text-muted uppercase font-bold mt-1">Orgs</p>
             </div>
           </div>
         </div>
       </section>
 
       {/* Theme Selector */}
-      <section className="space-y-4">
+      <section id="appearance" className="space-y-4 scroll-mt-8">
         <div className="flex items-center gap-2">
           <Layers size={20} className="text-brand" />
           <h2 className="text-xl font-bold">Appearance</h2>
@@ -125,12 +152,12 @@ export const Settings: React.FC<SettingsProps> = ({
                 "card-base p-6 text-left flex items-start gap-4 transition-all",
                 theme === t.id 
                   ? "border-brand ring-2 ring-brand/20 bg-brand/5" 
-                  : "hover:border-zinc-700"
+                  : "hover:border-app-border"
               )}
             >
               <div className={cn(
                 "p-3 rounded-xl",
-                theme === t.id ? "bg-brand text-white" : "bg-zinc-900 text-zinc-500"
+                theme === t.id ? "bg-brand text-white" : "bg-app-bg text-app-text-muted"
               )}>
                 <t.icon size={24} />
               </div>
@@ -144,13 +171,13 @@ export const Settings: React.FC<SettingsProps> = ({
       </section>
 
       {/* Security & Authentication */}
-      <section className="space-y-4">
+      <section id="security" className="space-y-4 scroll-mt-8">
         <div className="flex items-center gap-2">
           <ShieldCheck size={20} className="text-emerald-400" />
           <h2 className="text-xl font-bold">Security & Authentication</h2>
         </div>
         <div className="card-base p-8 space-y-6">
-          <div className="flex items-center justify-between p-4 bg-zinc-900/50 rounded-2xl border border-zinc-800/50">
+          <div className="flex items-center justify-between p-4 bg-app-card/50 rounded-2xl border border-app-border/50">
             <div className="flex items-center gap-3">
               <div className={cn(
                 "p-2 rounded-lg",
@@ -160,7 +187,7 @@ export const Settings: React.FC<SettingsProps> = ({
               </div>
               <div>
                 <p className="text-sm font-bold">GitHub Two-Factor Authentication</p>
-                <p className="text-xs text-zinc-500">
+                <p className="text-xs text-app-text-muted">
                   {user?.two_factor_authentication 
                     ? "Your account is protected by GitHub 2FA." 
                     : "2FA status could not be verified or is disabled on GitHub."}
@@ -180,7 +207,7 @@ export const Settings: React.FC<SettingsProps> = ({
               <AlertCircle className="text-blue-400 shrink-0" size={18} />
               <div className="space-y-1">
                 <p className="text-sm font-bold text-blue-400">How 2FA works here</p>
-                <p className="text-xs text-zinc-400 leading-relaxed">
+                <p className="text-xs text-app-text-dim leading-relaxed">
                   This application uses GitHub OAuth for authentication. When you log in, 2FA is handled directly by GitHub. 
                   We never see or store your 2FA codes, ensuring your credentials remain completely secure within GitHub's infrastructure.
                 </p>
@@ -191,7 +218,7 @@ export const Settings: React.FC<SettingsProps> = ({
       </section>
 
       {/* SMTP Notification Settings */}
-      <section className="space-y-4">
+      <section id="notifications" className="space-y-4 scroll-mt-8">
         <div className="flex items-center gap-2">
           <Bell size={20} className="text-brand" />
           <h2 className="text-xl font-bold">Notifications</h2>
@@ -200,7 +227,7 @@ export const Settings: React.FC<SettingsProps> = ({
           <div className="flex items-start justify-between gap-4">
             <div className="space-y-1">
               <h3 className="font-bold">SMTP Configuration</h3>
-              <p className="text-sm text-zinc-500">Enable email notifications for issue assignments.</p>
+              <p className="text-sm text-app-text-dim">Enable email notifications for issue assignments.</p>
             </div>
             <div className={cn(
               "flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold",
@@ -211,9 +238,9 @@ export const Settings: React.FC<SettingsProps> = ({
             </div>
           </div>
 
-          <div className="p-4 rounded-xl bg-zinc-900/50 border border-zinc-800/50 space-y-4">
+          <div className="p-4 rounded-xl bg-app-card/50 border border-app-border/50 space-y-4">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-zinc-400">Status</span>
+              <span className="text-sm font-medium text-app-text-dim">Status</span>
               <span className="text-sm font-bold">{smtpStatus.message}</span>
             </div>
             <button 
@@ -225,7 +252,7 @@ export const Settings: React.FC<SettingsProps> = ({
           </div>
 
           {smtpStatus.configured && (
-            <div className="space-y-4 pt-4 border-t border-zinc-800">
+            <div className="space-y-4 pt-4 border-t border-app-border">
               <h4 className="text-sm font-bold">Test Configuration</h4>
               <div className="flex gap-2">
                 <input 
@@ -233,7 +260,7 @@ export const Settings: React.FC<SettingsProps> = ({
                   value={testEmail}
                   onChange={(e) => setTestEmail(e.target.value)}
                   placeholder="Enter test email address"
-                  className="flex-1 bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
+                  className="flex-1 bg-app-bg border border-app-border rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
                 />
                 <button 
                   onClick={() => onTestEmail(testEmail)}
@@ -248,27 +275,28 @@ export const Settings: React.FC<SettingsProps> = ({
         </div>
       </section>
 
-      {/* Connected Accounts */}
-      <section className="space-y-4">
-        <div className="flex items-center gap-2">
-          <Shield size={20} className="text-brand" />
-          <h2 className="text-xl font-bold">Connected Accounts</h2>
-        </div>
-        <div className="card-base p-6 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-zinc-900 rounded-xl text-zinc-400">
-              <Github size={24} />
+          {/* Connected Accounts */}
+          <section id="integrations" className="card-base p-8 space-y-6 scroll-mt-8">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-zinc-900 rounded-xl text-zinc-400">
+                <Github size={24} />
+              </div>
+              <div>
+                <h3 className="font-bold">GitHub Account</h3>
+                <p className="text-sm text-zinc-500">Connected as @{user?.login}</p>
+              </div>
             </div>
-            <div>
-              <h3 className="font-bold">GitHub Account</h3>
-              <p className="text-sm text-zinc-500">Connected as @{user?.login}</p>
+            <div className="flex justify-end">
+              <button 
+                onClick={onLogout}
+                className="text-sm text-red-500 font-bold hover:underline"
+              >
+                Disconnect Account
+              </button>
             </div>
-          </div>
-          <button className="text-sm text-red-500 font-bold hover:underline">
-            Disconnect
-          </button>
+          </section>
         </div>
-      </section>
+      </div>
     </div>
   );
 };

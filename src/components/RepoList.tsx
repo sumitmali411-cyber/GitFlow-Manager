@@ -44,18 +44,18 @@ export const RepoList: React.FC<RepoListProps> = ({
       <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
         <div className="space-y-1">
           <h1 className="text-3xl font-bold tracking-tight">Repositories</h1>
-          <p className="text-zinc-500">Select a repository to manage its workflow.</p>
+          <p className="text-app-text-dim">Select a repository to manage its workflow.</p>
         </div>
         
         <div className="flex items-center gap-4 w-full sm:w-auto">
           <div className="relative flex-1 sm:w-80">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" size={18} />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-app-text-muted" size={18} />
             <input 
               type="text" 
               placeholder="Search repositories..."
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
-              className="w-full bg-zinc-900 border border-zinc-800 rounded-xl pl-12 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50 transition-all"
+              className="w-full bg-app-card border-app-border rounded-xl pl-12 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50 transition-all"
             />
           </div>
           <button 
@@ -83,7 +83,7 @@ export const RepoList: React.FC<RepoListProps> = ({
       {loading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {[1, 2, 3, 4, 5, 6].map((i) => (
-            <div key={i} className="h-48 bg-zinc-900/50 rounded-2xl animate-pulse border border-zinc-800" />
+            <div key={i} className="h-48 bg-app-card/50 rounded-2xl animate-pulse border border-app-border" />
           ))}
         </div>
       ) : (
@@ -99,19 +99,19 @@ export const RepoList: React.FC<RepoListProps> = ({
             >
               <div className="space-y-4">
                 <div className="flex items-start justify-between">
-                  <div className="p-3 bg-zinc-900 rounded-xl group-hover:bg-brand group-hover:text-white transition-all">
+                  <div className="p-3 bg-app-bg rounded-xl group-hover:bg-brand group-hover:text-white transition-all">
                     <FolderGit2 size={24} />
                   </div>
-                  <ChevronRight size={18} className="text-zinc-600 group-hover:text-white group-hover:translate-x-1 transition-all" />
+                  <ChevronRight size={18} className="text-app-text-muted group-hover:text-app-text group-hover:translate-x-1 transition-all" />
                 </div>
                 
                 <div className="space-y-1">
                   <h3 className="font-bold text-lg truncate group-hover:text-brand transition-colors">{repo.name}</h3>
-                  <p className="text-sm text-zinc-500 line-clamp-2 h-10">{repo.description || 'No description provided.'}</p>
+                  <p className="text-sm text-app-text-dim line-clamp-2 h-10">{repo.description || 'No description provided.'}</p>
                 </div>
               </div>
 
-              <div className="mt-8 flex items-center gap-4 text-xs text-zinc-500 font-medium">
+              <div className="mt-8 flex items-center gap-4 text-xs text-app-text-dim font-medium">
                 <div className="flex items-center gap-1">
                   <Star size={14} className="text-amber-400" />
                   {repo.stargazers_count}
@@ -136,12 +136,12 @@ export const RepoList: React.FC<RepoListProps> = ({
 
       {!loading && filteredRepos.length === 0 && (
         <div className="text-center py-20 space-y-4">
-          <div className="p-6 bg-zinc-900 rounded-full w-fit mx-auto text-zinc-500">
+          <div className="p-6 bg-app-card rounded-full w-fit mx-auto text-app-text-muted">
             <Search size={48} />
           </div>
           <div className="space-y-1">
             <h3 className="text-xl font-bold">No repositories found</h3>
-            <p className="text-zinc-500">Try adjusting your search query.</p>
+            <p className="text-app-text-dim">Try adjusting your search query.</p>
           </div>
         </div>
       )}
