@@ -253,25 +253,35 @@ export const Dashboard: React.FC<DashboardProps> = ({ token, onRepoSelect, onVie
           <section className="space-y-4">
             <h2 className="text-xl font-bold">Recent Activity</h2>
             <div className="card-base divide-y divide-app-border/50">
-              {issues.slice(0, 5).map((issue) => (
-                <div key={issue.id} className="p-4 space-y-2 hover:bg-app-card-hover/30 transition-colors">
-                  <div className="flex items-center gap-2">
-                    <AlertCircle size={14} className="text-amber-400" />
-                    <span className="text-sm font-medium truncate">{issue.title}</span>
-                  </div>
-                  <div className="flex items-center justify-between text-xs text-app-text-dim">
-                    <div className="flex items-center gap-2">
-                      <span className="text-brand font-mono">#{issue.number}</span>
-                      <span>•</span>
-                      <span>{issue.user.login}</span>
+              {[...issues.slice(0, 3), ...pulls.slice(0, 3)]
+                .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+                .slice(0, 6)
+                .map((item) => {
+                  const isPR = 'pull_request' in item || 'merged_at' in item;
+                  return (
+                    <div key={item.id} className="p-4 space-y-2 hover:bg-app-card-hover/30 transition-colors group cursor-pointer">
+                      <div className="flex items-center gap-2">
+                        {isPR ? (
+                          <GitPullRequest size={14} className="text-purple-400 group-hover:scale-110 transition-transform" />
+                        ) : (
+                          <AlertCircle size={14} className="text-amber-400 group-hover:scale-110 transition-transform" />
+                        )}
+                        <span className="text-sm font-medium truncate group-hover:text-brand transition-colors">{item.title}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-xs text-app-text-dim">
+                        <div className="flex items-center gap-2">
+                          <span className="text-brand font-mono">#{item.number}</span>
+                          <span>•</span>
+                          <span className="font-medium">{item.user.login}</span>
+                        </div>
+                        <span className="font-mono">{format(new Date(item.created_at), 'MMM d, h:mm a')}</span>
+                      </div>
                     </div>
-                    <span>{format(new Date(issue.created_at), 'h:mm a')}</span>
-                  </div>
-                </div>
-              ))}
+                  );
+                })}
               <button 
                 onClick={() => onViewChange('repos')}
-                className="w-full py-3 text-xs text-app-text-dim hover:text-app-text transition-colors font-medium"
+                className="w-full py-3 text-xs text-app-text-dim hover:text-app-text transition-colors font-bold uppercase tracking-widest"
               >
                 View all activity
               </button>

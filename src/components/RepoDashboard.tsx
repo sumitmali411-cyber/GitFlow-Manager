@@ -12,7 +12,9 @@ import {
   ShieldAlert,
   CheckCircle2,
   Calendar,
-  Mail
+  Mail,
+  TrendingUp,
+  Loader2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { format } from 'date-fns';
@@ -22,6 +24,21 @@ import { githubService, Repo, Commit, Issue, PullRequest, Milestone, Vulnerabili
 import { CreateIssueModal } from './CreateIssueModal';
 import { CreateMilestoneModal } from './CreateMilestoneModal';
 import { CreateBranchModal } from './CreateBranchModal';
+import { RepoInsights } from './RepoInsights';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import { 
+  LineChart, 
+  Line, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  Cell
+} from 'recharts';
 
 interface RepoDashboardProps {
   token: string;
@@ -36,7 +53,9 @@ export const RepoDashboard: React.FC<RepoDashboardProps> = ({ token, repo, onBac
   const [pulls, setPulls] = useState<PullRequest[]>([]);
   const [milestones, setMilestones] = useState<Milestone[]>([]);
   const [vulnerabilities, setVulnerabilities] = useState<Vulnerability[]>([]);
+  const [readme, setReadme] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadingReadme, setLoadingReadme] = useState(false);
   const [issueSearch, setIssueSearch] = useState('');
   const [isIssueModalOpen, setIsIssueModalOpen] = useState(false);
   const [isMilestoneModalOpen, setIsMilestoneModalOpen] = useState(false);
@@ -71,9 +90,28 @@ export const RepoDashboard: React.FC<RepoDashboardProps> = ({ token, repo, onBac
     }
   };
 
+  const fetchReadme = async () => {
+    setLoadingReadme(true);
+    try {
+      const content = await githubService.getFileContent(token, repo.full_name, 'README.md');
+      setReadme(content);
+    } catch (err) {
+      console.error('Failed to fetch README:', err);
+      setReadme('# README.md not found\n\nNo documentation available for this repository.');
+    } finally {
+      setLoadingReadme(false);
+    }
+  };
+
   useEffect(() => {
     fetchRepoData();
   }, [token, repo.full_name]);
+
+  useEffect(() => {
+    if (activeTab === 'docs' && !readme) {
+      fetchReadme();
+    }
+  }, [activeTab]);
 
   const handleCreateIssue = async (data: { title: string; body: string }) => {
     await githubService.createIssue(token, repo.full_name, data);
@@ -166,7 +204,16 @@ export const RepoDashboard: React.FC<RepoDashboardProps> = ({ token, repo, onBac
         </div>
       </header>
 
-      <div className="min-h-[400px]">
+      <div className="min-h-[400px] space-y-8">
+        {!loading && activeTab === 'commits' && (
+          <RepoInsights 
+            repo={repo} 
+            commits={commits} 
+            issues={issues} 
+            milestones={milestones} 
+          />
+        )}
+
         {loading ? (
           <div className="flex items-center justify-center h-64">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
@@ -196,7 +243,35 @@ export const RepoDashboard: React.FC<RepoDashboardProps> = ({ token, repo, onBac
                 onCreate={handleCreateBranch} 
               />
               {activeTab === 'commits' && (
-                <div className="space-y-4">
+                <div className="space-y-8">
+                  {/* Commit Frequency Chart */}
+                  <div className="card-base p-6 space-y-4">
+                    <div className="flex items-center gap-2 text-app-text-dim">
+                      <TrendingUp size={18} />
+                      <h3 className="font-bold">Commit Frequency</h3>
+                    </div>
+                    <div className="h-48 w-full">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={commits.slice(0, 14).reverse().reduce((acc: any[], c) => {
+                          const date = format(new Date(c.commit.author.date), 'MMM d');
+                          const existing = acc.find(a => a.date === date);
+                          if (existing) existing.count++;
+                          else acc.push({ date, count: 1 });
+                          return acc;
+                        }, [])}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#333" vertical={false} />
+                          <XAxis dataKey="date" stroke="#666" fontSize={10} />
+                          <YAxis stroke="#666" fontSize={10} />
+                          <Tooltip 
+                            contentStyle={{ backgroundColor: '#18181b', border: '1px solid #27272a', borderRadius: '8px' }}
+                            itemStyle={{ color: '#fff' }}
+                          />
+                          <Line type="monotone" dataKey="count" stroke="#10b981" strokeWidth={2} dot={{ fill: '#10b981' }} />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+
                   <div className="card-base divide-y divide-app-border/50">
                     {commits.map((commit) => (
                       <div key={commit.sha} className="p-6 hover:bg-app-card-hover/30 transition-colors group">
@@ -353,7 +428,7 @@ export const RepoDashboard: React.FC<RepoDashboardProps> = ({ token, repo, onBac
               )}
 
               {activeTab === 'sprints' && (
-                <div className="space-y-6">
+                <div className="space-y-8">
                   <div className="flex justify-end">
                     <button 
                       onClick={() => setIsMilestoneModalOpen(true)}
@@ -363,6 +438,35 @@ export const RepoDashboard: React.FC<RepoDashboardProps> = ({ token, repo, onBac
                       New Sprint
                     </button>
                   </div>
+
+                  {/* Velocity Chart */}
+                  {milestones.length > 0 && (
+                    <div className="card-base p-6 space-y-4">
+                      <div className="flex items-center gap-2 text-app-text-dim">
+                        <TrendingUp size={18} />
+                        <h3 className="font-bold">Sprint Velocity (Closed Issues)</h3>
+                      </div>
+                      <div className="h-64 w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart data={milestones.slice(0, 5).reverse()}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#333" vertical={false} />
+                            <XAxis dataKey="title" stroke="#666" fontSize={10} />
+                            <YAxis stroke="#666" fontSize={10} />
+                            <Tooltip 
+                              contentStyle={{ backgroundColor: '#18181b', border: '1px solid #27272a', borderRadius: '8px' }}
+                              itemStyle={{ color: '#fff' }}
+                            />
+                            <Bar dataKey="closed_issues" radius={[4, 4, 0, 0]}>
+                              {milestones.slice(0, 5).reverse().map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={entry.state === 'open' ? '#10b981' : '#6366f1'} />
+                              ))}
+                            </Bar>
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="grid grid-cols-1 gap-6">
                     {milestones.map((milestone) => (
                       <div key={milestone.id} className="card-base p-8 space-y-6">
@@ -477,22 +581,18 @@ export const RepoDashboard: React.FC<RepoDashboardProps> = ({ token, repo, onBac
               )}
 
               {activeTab === 'docs' && (
-                <div className="card-base p-20 text-center space-y-4">
-                  <div className="p-6 bg-app-card text-app-text-muted rounded-full w-fit mx-auto">
-                    <BookOpen size={48} />
-                  </div>
-                  <div className="space-y-1">
-                    <h3 className="text-xl font-bold">Documentation</h3>
-                    <p className="text-app-text-dim">Browse and view markdown documentation files.</p>
-                  </div>
-                  <a 
-                    href={`https://github.com/${repo.full_name}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-block bg-brand hover:bg-brand-hover text-white px-6 py-2 rounded-xl text-sm font-bold transition-all"
-                  >
-                    Browse Files on GitHub
-                  </a>
+                <div className="card-base p-8 min-h-[600px]">
+                  {loadingReadme ? (
+                    <div className="flex items-center justify-center h-64">
+                      <Loader2 size={32} className="animate-spin text-brand" />
+                    </div>
+                  ) : (
+                    <div className="prose prose-invert prose-emerald max-w-none">
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        {readme || ''}
+                      </ReactMarkdown>
+                    </div>
+                  )}
                 </div>
               )}
             </motion.div>
