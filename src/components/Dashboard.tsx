@@ -134,7 +134,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ token, onRepoSelect, onVie
       />
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((stat, idx) => (
           <motion.div
             key={stat.label}
@@ -224,7 +224,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ token, onRepoSelect, onVie
           {/* Tools & Integrations */}
           <section className="space-y-4">
             <h2 className="text-xl font-bold">Tools & Integrations</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {[
                 { name: 'GitHub Actions', status: 'Active', icon: Zap, color: 'text-emerald-400', url: 'https://github.com/features/actions' },
                 { name: 'Dependabot', status: 'Enabled', icon: ShieldAlert, color: 'text-blue-400', url: 'https://github.com/features/security' },

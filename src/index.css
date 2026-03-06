@@ -27,8 +27,6 @@
   --text-primary: #fafafa;
   --text-secondary: #a1a1aa;
   --text-muted: #71717a;
-  --glass-bg: rgba(24, 24, 27, 0.7);
-  --glass-border: rgba(255, 255, 255, 0.1);
 }
 
 .theme-light {
@@ -39,8 +37,6 @@
   --text-primary: #09090b;
   --text-secondary: #52525b;
   --text-muted: #71717a;
-  --glass-bg: rgba(255, 255, 255, 0.7);
-  --glass-border: rgba(0, 0, 0, 0.1);
 }
 
 .theme-extra-dark {
@@ -51,37 +47,6 @@
   --text-primary: #ffffff;
   --text-secondary: #d4d4d8;
   --text-muted: #a1a1aa;
-}
-
-.theme-glass {
-  --bg-main: #f8fafc;
-  --bg-card: rgba(255, 255, 255, 0.4);
-  --bg-card-hover: rgba(255, 255, 255, 0.6);
-  --border-color: rgba(255, 255, 255, 0.5);
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
-  --text-muted: #64748b;
-  --glass-bg: rgba(255, 255, 255, 0.3);
-  --glass-border: rgba(255, 255, 255, 0.4);
-}
-
-.theme-glass body {
-  background: 
-    radial-gradient(circle at 0% 0%, #e0e7ff 0%, transparent 40%),
-    radial-gradient(circle at 100% 0%, #fef3c7 0%, transparent 40%),
-    radial-gradient(circle at 50% 50%, #f1f5f9 0%, transparent 100%),
-    #f8fafc;
-  background-attachment: fixed;
-}
-
-.theme-glass .card-base {
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-}
-
-.theme-glass .glass-effect {
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
 }
 
 body {
@@ -113,13 +78,6 @@ body {
   .prose blockquote { border-left: 4px solid var(--border-color); padding-left: 1rem; font-style: italic; margin-top: 1.5rem; margin-bottom: 1.5rem; color: var(--text-muted); }
   .prose pre { background-color: var(--bg-card); padding: 1rem; border-radius: 0.75rem; border: 1px solid var(--border-color); margin-top: 1.5rem; margin-bottom: 1.5rem; overflow-x: auto; }
   .prose img { border-radius: 0.75rem; border: 1px solid var(--border-color); margin-top: 2rem; margin-bottom: 2rem; }
-}
-
-.glass-effect {
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
 }
 
 .card-base {

@@ -8,7 +8,6 @@ import {
   Moon,
   Sun,
   Zap,
-  Layers,
   ShieldCheck,
   Lock
 } from 'lucide-react';
@@ -43,7 +42,6 @@ export const Settings: React.FC<SettingsProps> = ({
     { id: 'light', icon: Sun, label: 'Light', desc: 'Clean and bright interface' },
     { id: 'dark', icon: Moon, label: 'Dark', desc: 'Standard dark mode' },
     { id: 'extra-dark', icon: Zap, label: 'Extra Dark', desc: 'Pure black background' },
-    { id: 'glass', icon: Layers, label: 'Glass', desc: 'Translucent glass effect' },
   ];
 
   return (
