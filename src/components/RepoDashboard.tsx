@@ -24,7 +24,6 @@ import { githubService, Repo, Commit, Issue, PullRequest, Milestone, Vulnerabili
 import { CreateIssueModal } from './CreateIssueModal';
 import { CreateMilestoneModal } from './CreateMilestoneModal';
 import { CreateBranchModal } from './CreateBranchModal';
-import { RepoInsights } from './RepoInsights';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { 
@@ -205,15 +204,6 @@ export const RepoDashboard: React.FC<RepoDashboardProps> = ({ token, repo, onBac
       </header>
 
       <div className="min-h-[400px] space-y-8">
-        {!loading && activeTab === 'commits' && (
-          <RepoInsights 
-            repo={repo} 
-            commits={commits} 
-            issues={issues} 
-            milestones={milestones} 
-          />
-        )}
-
         {loading ? (
           <div className="flex items-center justify-center h-64">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
