@@ -5,6 +5,7 @@ import { Dashboard } from './components/Dashboard';
 import { RepoList } from './components/RepoList';
 import { RepoDashboard } from './components/RepoDashboard';
 import { Settings } from './components/Settings';
+import { NotificationManager } from './components/NotificationManager';
 import { githubService, Repo, User } from './services/githubService';
 import { Github } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -167,6 +168,7 @@ export default function App() {
         activeView={view} 
         onViewChange={(v) => { setView(v); setSelectedRepo(null); }}
       >
+        <NotificationManager token={token} user={user} />
         <AnimatePresence mode="wait">
           {selectedRepo ? (
             <motion.div

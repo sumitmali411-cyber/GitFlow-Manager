@@ -1,19 +1,33 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Target, Loader2, Calendar } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { Milestone } from '../services/githubService';
 
-interface CreateMilestoneModalProps {
+interface MilestoneModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onCreate: (data: { title: string; description: string; due_on?: string }) => Promise<void>;
+  onSubmit: (data: { title: string; description: string; due_on?: string }) => Promise<void>;
+  milestone?: Milestone | null;
 }
 
-export const CreateMilestoneModal: React.FC<CreateMilestoneModalProps> = ({ isOpen, onClose, onCreate }) => {
+export const MilestoneModal: React.FC<MilestoneModalProps> = ({ isOpen, onClose, onSubmit, milestone }) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [dueOn, setDueOn] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (milestone) {
+      setTitle(milestone.title);
+      setDescription(milestone.description || '');
+      setDueOn(milestone.due_on ? milestone.due_on.split('T')[0] : '');
+    } else {
+      setTitle('');
+      setDescription('');
+      setDueOn('');
+    }
+  }, [milestone, isOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,17 +36,19 @@ export const CreateMilestoneModal: React.FC<CreateMilestoneModalProps> = ({ isOp
     setLoading(true);
     setError(null);
     try {
-      await onCreate({ 
+      await onSubmit({ 
         title, 
         description, 
         due_on: dueOn ? new Date(dueOn).toISOString() : undefined 
       });
       onClose();
-      setTitle('');
-      setDescription('');
-      setDueOn('');
+      if (!milestone) {
+        setTitle('');
+        setDescription('');
+        setDueOn('');
+      }
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to create milestone');
+      setError(err.response?.data?.message || `Failed to ${milestone ? 'update' : 'create'} milestone`);
     } finally {
       setLoading(false);
     }
@@ -53,7 +69,7 @@ export const CreateMilestoneModal: React.FC<CreateMilestoneModalProps> = ({ isOp
                 <div className="p-2 bg-purple-400/10 text-purple-400 rounded-lg">
                   <Target size={20} />
                 </div>
-                <h2 className="text-xl font-bold">New Sprint (Milestone)</h2>
+                <h2 className="text-xl font-bold">{milestone ? 'Edit Sprint' : 'New Sprint'}</h2>
               </div>
               <button onClick={onClose} className="p-2 hover:bg-app-card-hover rounded-full transition-colors text-app-text-muted hover:text-app-text">
                 <X size={20} />
@@ -112,7 +128,7 @@ export const CreateMilestoneModal: React.FC<CreateMilestoneModalProps> = ({ isOp
                   disabled={loading || !title.trim()}
                   className="flex-1 bg-brand hover:bg-brand-hover disabled:opacity-50 text-white px-6 py-3 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2"
                 >
-                  {loading ? <Loader2 size={18} className="animate-spin" /> : 'Create Sprint'}
+                  {loading ? <Loader2 size={18} className="animate-spin" /> : milestone ? 'Update Sprint' : 'Create Sprint'}
                 </button>
               </div>
             </form>

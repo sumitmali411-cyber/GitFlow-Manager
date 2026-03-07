@@ -20,6 +20,7 @@ export interface User {
   avatar_url: string;
   name: string;
   bio: string;
+  email: string | null;
   public_repos: number;
   followers: number;
   following: number;
@@ -175,6 +176,11 @@ export const githubService = {
 
   createRepo: async (token: string, data: { name: string; description?: string; private?: boolean }) => {
     const res = await axios.post(`${API_BASE}/user/repos`, data, { headers: getHeaders(token) });
+    return res.data;
+  },
+  
+  getNotifications: async (token: string): Promise<any[]> => {
+    const res = await axios.get(`${API_BASE}/notifications`, { headers: getHeaders(token) });
     return res.data;
   }
 };

@@ -37,6 +37,13 @@ export const Settings: React.FC<SettingsProps> = ({
   isTestingEmail 
 }) => {
   const { theme, setTheme } = useTheme();
+  const [, setTick] = React.useState(0);
+
+  React.useEffect(() => {
+    const handleStorage = () => setTick(t => t + 1);
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, []);
 
   const themes: { id: Theme; icon: any; label: string; desc: string }[] = [
     { id: 'light', icon: Sun, label: 'Light', desc: 'Clean and bright interface' },
@@ -56,7 +63,7 @@ export const Settings: React.FC<SettingsProps> = ({
         <div className="space-y-1 sticky top-8 h-fit">
           {[
             { id: 'profile', label: 'Profile', icon: User },
-            { id: 'appearance', label: 'Appearance', icon: Layers },
+            { id: 'appearance', label: 'Appearance', icon: Sun },
             { id: 'security', label: 'Security', icon: ShieldCheck },
             { id: 'notifications', label: 'Notifications', icon: Bell },
             { id: 'integrations', label: 'Integrations', icon: Zap },
@@ -138,7 +145,7 @@ export const Settings: React.FC<SettingsProps> = ({
       {/* Theme Selector */}
       <section id="appearance" className="space-y-4 scroll-mt-8">
         <div className="flex items-center gap-2">
-          <Layers size={20} className="text-brand" />
+          <Sun size={20} className="text-brand" />
           <h2 className="text-xl font-bold">Appearance</h2>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -247,6 +254,47 @@ export const Settings: React.FC<SettingsProps> = ({
             >
               Refresh Status
             </button>
+          </div>
+
+          <div className="space-y-4 pt-4 border-t border-app-border">
+            <h4 className="text-sm font-bold">Email Preferences</h4>
+            <div className="space-y-3">
+              {[
+                { id: 'issue_activity', label: 'Issue Activity', desc: 'Notify when someone comments on or updates an issue you watch' },
+                { id: 'pr_merged', label: 'PR Merged', desc: 'Notify when a Pull Request you authored is merged' },
+                { id: 'issue_assigned', label: 'Issue Assigned', desc: 'Notify when you are assigned to a new issue' }
+              ].map((pref) => {
+                const settings = JSON.parse(localStorage.getItem('notification_settings') || '{"issue_activity": true, "pr_merged": true, "issue_assigned": true}');
+                const isEnabled = settings[pref.id];
+                
+                return (
+                  <div key={pref.id} className="flex items-center justify-between p-4 bg-app-card/30 rounded-xl border border-app-border/30">
+                    <div className="space-y-0.5">
+                      <p className="text-sm font-bold">{pref.label}</p>
+                      <p className="text-xs text-app-text-dim">{pref.desc}</p>
+                    </div>
+                    <button
+                      onClick={() => {
+                        const newSettings = { ...settings, [pref.id]: !isEnabled };
+                        localStorage.setItem('notification_settings', JSON.stringify(newSettings));
+                        // Force re-render by updating a dummy state if needed, 
+                        // but for now we'll just let it update on next render
+                        window.dispatchEvent(new Event('storage'));
+                      }}
+                      className={cn(
+                        "w-12 h-6 rounded-full transition-all relative",
+                        isEnabled ? "bg-brand" : "bg-app-card-hover"
+                      )}
+                    >
+                      <div className={cn(
+                        "absolute top-1 w-4 h-4 rounded-full bg-white transition-all",
+                        isEnabled ? "right-1" : "left-1"
+                      )} />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
           {smtpStatus.configured && (

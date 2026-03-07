@@ -43,7 +43,61 @@ async function startServer() {
     })
   );
 
-  // Notification Endpoint
+  // Generic Notification Endpoint
+  app.post("/api/notify/event", async (req, res) => {
+    const { email, type, data } = req.body;
+    
+    if (!process.env.SMTP_USER || !process.env.SMTP_PASS || !process.env.SMTP_HOST) {
+      return res.status(400).json({ error: "SMTP_NOT_CONFIGURED" });
+    }
+
+    let subject = "";
+    let content = "";
+
+    switch (type) {
+      case 'issue_activity':
+        subject = `Activity on Watched Issue: ${data.title}`;
+        content = `There is new activity on an issue you are watching in ${data.repoName}.\n\nTitle: ${data.title}\nLink: ${data.url}`;
+        break;
+      case 'pr_merged':
+        subject = `PR Merged: ${data.title}`;
+        content = `Your Pull Request has been merged in ${data.repoName}!\n\nTitle: ${data.title}\nLink: ${data.url}`;
+        break;
+      case 'issue_assigned':
+        subject = `New Issue Assigned: ${data.title}`;
+        content = `You have been assigned a new issue in ${data.repoName}.\n\nTitle: ${data.title}\nLink: ${data.url}`;
+        break;
+      default:
+        subject = `GitFlow Notification: ${data.title}`;
+        content = `Notification for ${data.repoName}: ${data.title}\nLink: ${data.url}`;
+    }
+
+    try {
+      await transporter.verify();
+      await transporter.sendMail({
+        from: `"GitFlow Manager" <${process.env.SMTP_USER}>`,
+        to: email,
+        subject: subject,
+        text: content,
+        html: `
+          <div style="font-family: sans-serif; padding: 20px; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #eee; border-radius: 12px;">
+            <h2 style="color: #000; border-bottom: 1px solid #eee; padding-bottom: 10px;">${subject}</h2>
+            <p>${content.split('\n\n')[0]}</p>
+            <div style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #000;">
+              <h3 style="margin-top: 0; color: #000;">${data.title}</h3>
+              <p style="color: #666; font-size: 14px;">Click the button below to view the details on GitHub.</p>
+              <a href="${data.url}" style="display: inline-block; background: #000; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; margin-top: 10px;">View on GitHub</a>
+            </div>
+          </div>
+        `,
+      });
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(500).json({ error: "EMAIL_SEND_FAILED", message: error.message });
+    }
+  });
+
+  // Notification Endpoint (Legacy/Specific)
   app.post("/api/notify/assignment", async (req, res) => {
     const { email, issueTitle, issueUrl, repoName } = req.body;
     

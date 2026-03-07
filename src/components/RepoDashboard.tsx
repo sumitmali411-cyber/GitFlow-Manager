@@ -14,7 +14,8 @@ import {
   Calendar,
   Mail,
   TrendingUp,
-  Loader2
+  Loader2,
+  Pencil
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { format } from 'date-fns';
@@ -22,7 +23,7 @@ import { cn } from '../lib/utils';
 import { calculateRepoStatus } from '../lib/repoUtils';
 import { githubService, Repo, Commit, Issue, PullRequest, Milestone, Vulnerability } from '../services/githubService';
 import { CreateIssueModal } from './CreateIssueModal';
-import { CreateMilestoneModal } from './CreateMilestoneModal';
+import { MilestoneModal } from './MilestoneModal';
 import { CreateBranchModal } from './CreateBranchModal';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -58,6 +59,7 @@ export const RepoDashboard: React.FC<RepoDashboardProps> = ({ token, repo, onBac
   const [issueSearch, setIssueSearch] = useState('');
   const [isIssueModalOpen, setIsIssueModalOpen] = useState(false);
   const [isMilestoneModalOpen, setIsMilestoneModalOpen] = useState(false);
+  const [editingMilestone, setEditingMilestone] = useState<Milestone | null>(null);
   const [isBranchModalOpen, setIsBranchModalOpen] = useState(false);
 
   const fetchRepoData = async () => {
@@ -117,9 +119,14 @@ export const RepoDashboard: React.FC<RepoDashboardProps> = ({ token, repo, onBac
     await fetchRepoData();
   };
 
-  const handleCreateMilestone = async (data: { title: string; description: string; due_on?: string }) => {
-    await githubService.createMilestone(token, repo.full_name, data);
+  const handleMilestoneSubmit = async (data: { title: string; description: string; due_on?: string }) => {
+    if (editingMilestone) {
+      await githubService.updateMilestone(token, repo.full_name, editingMilestone.number, data);
+    } else {
+      await githubService.createMilestone(token, repo.full_name, data);
+    }
     await fetchRepoData();
+    setEditingMilestone(null);
   };
 
   const handleCreateBranch = async (name: string) => {
@@ -222,10 +229,14 @@ export const RepoDashboard: React.FC<RepoDashboardProps> = ({ token, repo, onBac
                 onClose={() => setIsIssueModalOpen(false)} 
                 onCreate={handleCreateIssue} 
               />
-              <CreateMilestoneModal 
+              <MilestoneModal 
                 isOpen={isMilestoneModalOpen} 
-                onClose={() => setIsMilestoneModalOpen(false)} 
-                onCreate={handleCreateMilestone} 
+                onClose={() => {
+                  setIsMilestoneModalOpen(false);
+                  setEditingMilestone(null);
+                }} 
+                onSubmit={handleMilestoneSubmit}
+                milestone={editingMilestone}
               />
               <CreateBranchModal 
                 isOpen={isBranchModalOpen} 
@@ -473,10 +484,24 @@ export const RepoDashboard: React.FC<RepoDashboardProps> = ({ token, repo, onBac
                             </div>
                             <p className="text-app-text-dim">{milestone.description || 'No description provided.'}</p>
                           </div>
-                          <div className="text-right space-y-1">
-                            <div className="flex items-center gap-2 text-app-text-muted text-sm">
-                              <Calendar size={16} />
-                              <span>Due {milestone.due_on ? format(new Date(milestone.due_on), 'MMM d, yyyy') : 'No due date'}</span>
+                          <div className="flex items-start gap-4">
+                            <div className="text-right space-y-1">
+                              <div className="flex items-center gap-2">
+                                <button 
+                                  onClick={() => {
+                                    setEditingMilestone(milestone);
+                                    setIsMilestoneModalOpen(true);
+                                  }}
+                                  className="p-2 hover:bg-app-card-hover rounded-lg transition-colors text-app-text-muted hover:text-brand"
+                                  title="Edit Sprint"
+                                >
+                                  <Pencil size={16} />
+                                </button>
+                              </div>
+                              <div className="flex items-center gap-2 text-app-text-muted text-sm">
+                                <Calendar size={16} />
+                                <span>Due {milestone.due_on ? format(new Date(milestone.due_on), 'MMM d, yyyy') : 'No due date'}</span>
+                              </div>
                             </div>
                           </div>
                         </div>
