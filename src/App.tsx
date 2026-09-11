@@ -105,8 +105,15 @@ export default function App() {
     window.open(url, 'github_oauth', 'width=600,height=700');
     
     const handleMessage = (event: MessageEvent) => {
+      // Any window can postMessage to this one. Without an origin check, a
+      // third-party page could inject an attacker-controlled access token and
+      // silently switch the user onto the attacker's GitHub account.
+      if (event.origin !== window.location.origin) return;
+
       if (event.data?.type === 'OAUTH_AUTH_SUCCESS') {
         const newToken = event.data.token;
+        if (typeof newToken !== 'string' || !newToken) return;
+
         setToken(newToken);
         localStorage.setItem('github_token', newToken);
         window.removeEventListener('message', handleMessage);
